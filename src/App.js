@@ -1,21 +1,16 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import 'aframe';
+import {Entity, Scene} from 'aframe-react';
+import React from 'react';
 
-class App extends Component {
-  render() {
+class App extends React.Component {
+  render () {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-      </div>
+      <Scene>
+        <Entity geometry={{primitive: 'box'}} material={{color: 'red'}} position={{x: 0, y: 0, z: -5}}/>
+        <Entity text={{value: 'Hello, WebVR!'}} position={{x:0, y: 1, z: -4}} color={'blue'}/>
+      </Scene>
     );
   }
 }
 
-export default App;
+export default App
