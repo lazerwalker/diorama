@@ -1,0 +1,18 @@
+{
+  "name": "diorama",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "aframe": "^0.8.2",
+    "react": "^16.3.2",
+    "react-aframe": "^1.0.0",
+    "react-dom": "^16.3.2",
+    "react-scripts": "1.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
