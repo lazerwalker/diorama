@@ -1,6 +1,7 @@
 import 'aframe';
 import {Entity, Scene} from 'aframe-react';
 import React from 'react';
+require('aframe-extras');
 
 class App extends React.Component {
   render () {
@@ -12,7 +13,7 @@ class App extends React.Component {
           height: 1
         },
         material: {src: "#wol"},
-        position: {x: 0, y: 0, z: -5},
+        position: "1 1 1"
       }
     ]
 
@@ -33,6 +34,15 @@ class App extends React.Component {
       <div>
         {sceneImages}
         <Scene>
+          <Entity id="rig"
+            movement-controls
+            position="0 0 0">
+            <Entity camera
+              position="0 1 0"
+              look-controls="pointerLockEnabled: true"></Entity>
+          </Entity>
+          <a-plane height="100" width="100" rotation="-90 0 0" color="#333333"/>
+          <a-sky color="#6EBAA7" />
           {sceneObjects}
         </Scene>
       </div>
