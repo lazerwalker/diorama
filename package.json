@@ -5,6 +5,7 @@
   "dependencies": {
     "aframe": "^0.8.2",
     "aframe-extras": "^4.1.1",
+    "aframe-look-at-component": "^0.6.0",
     "aframe-react": "^4.4.0",
     "react": "^16.3.2",
     "react-dom": "^16.3.2",
