@@ -7,6 +7,7 @@ class App extends React.Component {
   render () {
     var objects = [
       {
+        id: 'wol',
         primitive: "a-image",
         geometry: {
           width: 1,
@@ -26,30 +27,31 @@ class App extends React.Component {
     ]
 
     var sceneObjects = objects.map(function(o) {
-      return (<Entity primitive={o.primitive} geometry={o.geometry} material={o.material} position={o.position}/>)
+      return (<Entity key={o.id} primitive={o.primitive} geometry={o.geometry} material={o.material} position={o.position}/>)
     })
 
     var sceneImages = images.map(function(arr) {
       var [id, src] = arr
-      return (<img id={id} src={src} />)
+      return (<img id={id} key={id} src={src} />)
     })
 
     return (
-      <div>
-        {sceneImages}
-        <Scene>
-          <Entity id="rig"
-            movement-controls
-            position="0 0 0">
-            <Entity camera
-              position="0 1 0"
-              look-controls="pointerLockEnabled: true"></Entity>
-          </Entity>
-          <Entity primitive="a-plane" height="100" width="100" rotation="-90 0 0" color="#333333"/>
-          <Entity primitive="a-sky" color="#6EBAA7" />
-          {sceneObjects}
-        </Scene>
-      </div>
+      <Scene>
+        <a-assets>
+          {sceneImages}
+        </a-assets>
+        <Entity id="rig"
+          movement-controls
+          position="0 0 0">
+          <Entity camera
+            position="0 1 0"
+            look-controls="pointerLockEnabled: true"></Entity>
+        </Entity>
+
+        <Entity primitive="a-plane" height="100" width="100" rotation="-90 0 0" color="#333333"/>
+        <Entity primitive="a-sky" color="#6EBAA7" />
+        {sceneObjects}
+      </Scene>
     );
   }
 }
