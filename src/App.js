@@ -36,7 +36,7 @@ class App extends React.Component {
     })
 
     return (
-      <Scene>
+      <Scene vr-mode-ui={true}>
         <a-assets>
           {sceneImages}
         </a-assets>
@@ -45,7 +45,7 @@ class App extends React.Component {
           position="0 0 0">
           <Entity camera
             position="0 1 0"
-            look-controls="pointerLockEnabled: true"></Entity>
+            look-controls></Entity>
         </Entity>
 
         <Entity primitive="a-plane" height="100" width="100" rotation="-90 0 0" color="#333333"/>
