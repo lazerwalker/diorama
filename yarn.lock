@@ -55,6 +55,12 @@ address@1.0.3, address@^1.0.1:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/address/-/address-1.0.3.tgz#b5f50631f8d6cec8bd20c963963afb55e06cbce9"
 
+aframe-extras@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/aframe-extras/-/aframe-extras-4.1.1.tgz#d25cdb86792478a9f0279bc78162adb6cb7ca2f9"
+  dependencies:
+    three-pathfinding "^0.5.5"
+
 aframe-react@^4.4.0:
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/aframe-react/-/aframe-react-4.4.0.tgz#f8af660bc4f64746d7cddb065ad9cc5e88f358b9"
@@ -6971,6 +6977,10 @@ three-buffer-vertex-data@^1.0.0:
   resolved "https://registry.yarnpkg.com/three-buffer-vertex-data/-/three-buffer-vertex-data-1.1.0.tgz#cf228e78427665884b961a4cabe1f85ed39f82b1"
   dependencies:
     flatten-vertex-data "^1.0.0"
+
+three-pathfinding@^0.5.5:
+  version "0.5.5"
+  resolved "https://registry.yarnpkg.com/three-pathfinding/-/three-pathfinding-0.5.5.tgz#ff05a8f8cfba343b3b07c05c25d11b0d161911f8"
 
 "three@github:supermedium/three.js#r90fixMTLLoader":
   version "0.90.0"
