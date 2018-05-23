@@ -7,13 +7,17 @@ class App extends React.Component {
   render () {
     var objects = [
       {
+        primitive: "a-image",
         geometry: {
-          primitive: 'plane',
           width: 1,
           height: 1
         },
-        material: {src: "#wol"},
-        position: "1 1 1"
+        material: {
+          src: "#wol",
+          transparent: true,
+          alphaTest: 0.5
+        },
+        position: {x: 0, y: 1, z: -5}
       }
     ]
 
@@ -22,7 +26,7 @@ class App extends React.Component {
     ]
 
     var sceneObjects = objects.map(function(o) {
-      return (<Entity geometry={o.geometry} material={o.material} position={o.position}/>)
+      return (<Entity primitive={o.primitive} geometry={o.geometry} material={o.material} position={o.position}/>)
     })
 
     var sceneImages = images.map(function(arr) {
@@ -41,8 +45,8 @@ class App extends React.Component {
               position="0 1 0"
               look-controls="pointerLockEnabled: true"></Entity>
           </Entity>
-          <a-plane height="100" width="100" rotation="-90 0 0" color="#333333"/>
-          <a-sky color="#6EBAA7" />
+          <Entity primitive="a-plane" height="100" width="100" rotation="-90 0 0" color="#333333"/>
+          <Entity primitive="a-sky" color="#6EBAA7" />
           {sceneObjects}
         </Scene>
       </div>
