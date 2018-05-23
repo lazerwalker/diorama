@@ -1,7 +1,9 @@
 import 'aframe';
 import {Entity, Scene} from 'aframe-react';
 import React from 'react';
+
 require('aframe-extras');
+require('aframe-look-at-component')
 
 class App extends React.Component {
   render () {
@@ -27,7 +29,13 @@ class App extends React.Component {
     ]
 
     var sceneObjects = objects.map(function(o) {
-      return (<Entity key={o.id} primitive={o.primitive} geometry={o.geometry} material={o.material} position={o.position}/>)
+      return (<Entity key={o.id}
+        primitive={o.primitive}
+        geometry={o.geometry}
+        material={o.material}
+        position={o.position}
+        look-at="[camera]"
+      />)
     })
 
     var sceneImages = images.map(function(arr) {
