@@ -17,23 +17,7 @@ class App extends React.Component {
 
     if (distance >= 3) { return }
 
-    const newPos = {
-      x: cameraPos.x,
-      y: cameraPos.y + 1.2,
-      z: cameraPos.z - 0.2
-    }
-    const newObjects = this.state.objects
-    newObjects.push({
-      id: 'hello',
-      text: {
-        value: "howdy pardner!",
-        width: 2.0,
-        align: "center"
-      },
-      position: newPos
-    });
-
-    this.setState({objecets: newObjects})
+    this.setState({objects: this.state.objects, text: "Howdy pardner!"})
     console.log("HOWDY PARDNER")
   }
 
@@ -91,7 +75,10 @@ class App extends React.Component {
           position="0 0 0">
           <Entity camera
             position="0 1 0"
-            look-controls></Entity>
+            look-controls >
+            <Entity text={{value: this.state.text, width: 2.0, align: "center"}} position="0 -0.5 -0.8" />
+
+            </Entity>
         </Entity>
 
         <a-entity hand-controls="left"></a-entity>
