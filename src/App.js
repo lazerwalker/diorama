@@ -6,6 +6,20 @@ require('aframe-extras');
 require('aframe-look-at-component')
 
 class App extends React.Component {
+  handleClick(e) {
+    const position = e.target.getAttribute('position')
+    const cameraPos = document.querySelector("#rig").getAttribute('position')
+
+    const distance = Math.sqrt(
+      Math.pow(position.x - cameraPos.x, 2) +
+      Math.pow(position.z - cameraPos.z, 2)
+    )
+
+    if (distance >= 3) { return }
+
+    console.log("HOWDY PARDNER")
+  }
+
   render () {
     var objects = [
       {
@@ -20,7 +34,10 @@ class App extends React.Component {
           transparent: true,
           alphaTest: 0.5
         },
-        position: {x: 0, y: 1, z: -5}
+        position: {x: 0.0, y: 1.0, z: -5.0},
+        events: {
+          click: this.handleClick
+        }
       }
     ]
 
@@ -34,6 +51,7 @@ class App extends React.Component {
         geometry={o.geometry}
         material={o.material}
         position={o.position}
+        events={o.events}
         look-at="[camera]"
       />)
     })
@@ -44,7 +62,7 @@ class App extends React.Component {
     })
 
     return (
-      <Scene>
+      <Scene cursor="rayOrigin: mouse">
         <a-assets>
           {sceneImages}
         </a-assets>
