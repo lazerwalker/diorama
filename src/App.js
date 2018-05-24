@@ -6,7 +6,7 @@ require('aframe-extras');
 require('aframe-look-at-component')
 
 class App extends React.Component {
-  handleClick(e) {
+  handleClick = (e) => {
     const position = e.target.getAttribute('position')
     const cameraPos = document.querySelector("#rig").getAttribute('position')
 
@@ -17,11 +17,28 @@ class App extends React.Component {
 
     if (distance >= 3) { return }
 
+    const newPos = {
+      x: cameraPos.x,
+      y: cameraPos.y + 1.2,
+      z: cameraPos.z - 0.2
+    }
+    const newObjects = this.state.objects
+    newObjects.push({
+      id: 'hello',
+      text: {
+        value: "howdy pardner!",
+        width: 2.0,
+        align: "center"
+      },
+      position: newPos
+    });
+
+    this.setState({objecets: newObjects})
     console.log("HOWDY PARDNER")
   }
 
-  render () {
-    var objects = [
+  state = {
+    objects: [
       {
         id: 'wol',
         primitive: "a-image",
@@ -40,18 +57,21 @@ class App extends React.Component {
         }
       }
     ]
+  }
 
+  render () {
     var images = [
       ["wol", "WoL.png"]
     ]
 
-    var sceneObjects = objects.map(function(o) {
+    var sceneObjects = this.state.objects.map(function(o) {
       return (<Entity key={o.id}
         primitive={o.primitive}
         geometry={o.geometry}
         material={o.material}
         position={o.position}
         events={o.events}
+        text={o.text}
         look-at="[camera]"
       />)
     })
