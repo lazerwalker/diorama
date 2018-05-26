@@ -6,9 +6,30 @@ require('aframe-extras');
 require('aframe-look-at-component')
 
 class App extends React.Component {
+  componentDidMount() {
+    document.addEventListener('click', this.handleClick)
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("click", this.handleClick)
+  }
+
   handleClick = (e) => {
+    console.log("HANDLECLICK")
+    if (this.state.text) {
+      console.log("Removing text")
+      this.setState({text: undefined})
+      return
+    }
+    console.log("Not removing text")
+
     const position = e.target.getAttribute('position')
     const cameraPos = document.querySelector("#rig").getAttribute('position')
+
+    if (!cameraPos.x) {
+      console.log("NO POS")
+      return
+    }
 
     const distance = Math.sqrt(
       Math.pow(position.x - cameraPos.x, 2) +
@@ -19,6 +40,7 @@ class App extends React.Component {
 
     this.setState({objects: this.state.objects, text: "Howdy pardner!"})
     console.log("HOWDY PARDNER")
+    e.preventDefault()
   }
 
   state = {
