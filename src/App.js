@@ -87,6 +87,11 @@ class App extends React.Component {
       return (<img id={id} key={id} src={src} />)
     })
 
+    var text;
+    if (this.state.text) {
+      text = <Entity text={{value: this.state.text, width: 2.0, align: "center"}} position="0 -0.5 -0.8" />
+    }
+
     return (
       <Scene cursor="rayOrigin: mouse">
         <a-assets>
@@ -98,9 +103,8 @@ class App extends React.Component {
           <Entity camera
             position="0 1 0"
             look-controls >
-            <Entity text={{value: this.state.text, width: 2.0, align: "center"}} position="0 -0.5 -0.8" />
-
-            </Entity>
+            {text}
+          </Entity>
         </Entity>
 
         <a-entity hand-controls="left"></a-entity>
