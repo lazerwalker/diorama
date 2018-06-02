@@ -78,7 +78,7 @@ class App extends React.Component {
         position={o.position}
         events={o.events}
         text={o.text}
-        look-at="[camera]"
+        // look-at="[camera]"
       />)
     })
 
