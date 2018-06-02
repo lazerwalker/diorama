@@ -2,45 +2,47 @@ import 'aframe';
 import {Entity, Scene} from 'aframe-react';
 import React from 'react';
 
+// TODO: Remvoe aframe-react.
+// See how the default event system works in terms of clicking on things, and if I can get the behavior I want of "click on anything = remove text"
 require('aframe-extras');
 require('aframe-look-at-component')
 
 class App extends React.Component {
-  componentDidMount() {
-    document.addEventListener('click', this.handleClick)
-  }
 
-  componentWillUnmount() {
-    document.removeEventListener("click", this.handleClick)
-  }
-
-  handleClick = (e) => {
-    console.log("HANDLECLICK")
-    if (this.state.text) {
-      console.log("Removing text")
-      this.setState({text: undefined})
+  clickedAnywhere = (e, scene) => {
+    if (!(scene.components && scene.components.raycaster)) { 
       return
     }
-    console.log("Not removing text")
+   
+    var oldTextObj = this.state.textObj
 
-    const position = e.target.getAttribute('position')
+    if (this.state.text !== undefined) {
+      this.setState({text: undefined, textObj: undefined})
+    }
+
+    let intersectedEls = scene.components.raycaster.intersectedEls || []
+    for (var i = 0; i < intersectedEls.length; i++) {
+      let el = intersectedEls[i];
+      this.handleClick(el, oldTextObj)
+    }
+  }
+
+  handleClick = (el, oldTextObj) => {
+    if (el === oldTextObj) return
+
+    const position = el.getAttribute('position')
     const cameraPos = document.querySelector("#rig").getAttribute('position')
 
-    if (!cameraPos.x) {
-      console.log("NO POS")
-      return
-    }
+    if (cameraPos.x !== undefined) {
+      const distance = Math.sqrt(
+        Math.pow(position.x - cameraPos.x, 2) +
+        Math.pow(position.z - cameraPos.z, 2)
+      )
 
-    const distance = Math.sqrt(
-      Math.pow(position.x - cameraPos.x, 2) +
-      Math.pow(position.z - cameraPos.z, 2)
-    )
-
-    if (distance >= 3) { return }
-
-    this.setState({objects: this.state.objects, text: "Howdy pardner!"})
-    console.log("HOWDY PARDNER")
-    e.preventDefault()
+      if (distance < 3) {
+        this.setState({objects: this.state.objects, text: "Howdy pardner!", textObj: el})
+      }
+    } 
   }
 
   state = {
@@ -58,9 +60,6 @@ class App extends React.Component {
           alphaTest: 0.5
         },
         position: {x: 0.0, y: 1.0, z: -5.0},
-        events: {
-          click: this.handleClick
-        }
       }
     ]
   }
@@ -92,8 +91,11 @@ class App extends React.Component {
       text = <Entity text={{value: this.state.text, width: 2.0, align: "center"}} position="0 -0.5 -0.8" />
     }
 
+    console.log("Rendering")
+
+    var that = this;
     return (
-      <Scene cursor="rayOrigin: mouse">
+      <Scene id="scene" cursor="rayOrigin: mouse" events={{click: function(e) { that.clickedAnywhere(e, this) }}}>
         <a-assets>
           {sceneImages}
         </a-assets>
@@ -112,7 +114,7 @@ class App extends React.Component {
         <a-entity laser-controls="hand: left"></a-entity>
 
         <Entity primitive="a-plane" height="100" width="100" rotation="-90 0 0" color="#333333"/>
-        <Entity primitive="a-sky" color="#6EBAA7" />
+        <Entity primitive="a-sky" color="#6EBAA7" events={{click: this.clickedAnywhere}}/>
         {sceneObjects}
       </Scene>
     );
