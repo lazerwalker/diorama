@@ -10,6 +10,7 @@ require('aframe-look-at-component')
 class App extends React.Component {
 
   clickedAnywhere = (e, scene) => {
+    console.log("In clickedanywhere")
     if (!(scene.components && scene.components.raycaster)) { 
       return
     }
@@ -30,6 +31,9 @@ class App extends React.Component {
   handleClick = (el, oldTextObj) => {
     if (el === oldTextObj) return
 
+    let obj = this.state.objects[el.id]
+    if (!(obj && obj.text)) return
+
     const position = el.getAttribute('position')
     const cameraPos = document.querySelector("#rig").getAttribute('position')
 
@@ -40,14 +44,14 @@ class App extends React.Component {
       )
 
       if (distance < 3) {
-        this.setState({objects: this.state.objects, text: "Howdy pardner!", textObj: el})
+        this.setState({objects: this.state.objects, text: obj.text, textObj: el})
       }
     } 
   }
 
   state = {
-    objects: [
-      {
+    objects: {
+      "wol": {
         id: 'wol',
         primitive: "a-image",
         geometry: {
@@ -60,8 +64,24 @@ class App extends React.Component {
           alphaTest: 0.5
         },
         position: {x: 0.0, y: 1.0, z: -5.0},
+        text: "Howdy pardner!"
+      },
+      "wol2": {
+        id: 'wol2',
+        primitive: "a-image",
+        geometry: {
+          width: 1.5,
+          height: 1.5
+        },
+        material: {
+          src: "#wol",
+          transparent: true,
+          alphaTest: 0.5
+        },
+        position: {x: 3.0, y: 1.5, z: -10.0},
+        text: "There's a snake in my boot!"
       }
-    ]
+    }
   }
 
   render () {
@@ -69,17 +89,21 @@ class App extends React.Component {
       ["wol", "WoL.png"]
     ]
 
-    var sceneObjects = this.state.objects.map(function(o) {
-      return (<Entity key={o.id}
+    var sceneObjects = []
+    for (var key in this.state.objects) {
+      var o = this.state.objects[key]
+      console.log(o.id)
+      sceneObjects.push(<Entity key={o.id}
         primitive={o.primitive}
         geometry={o.geometry}
         material={o.material}
         position={o.position}
         events={o.events}
         text={o.text}
+        id={o.id}
         // look-at="[camera]"
       />)
-    })
+    }
 
     var sceneImages = images.map(function(arr) {
       var [id, src] = arr
@@ -90,8 +114,6 @@ class App extends React.Component {
     if (this.state.text) {
       text = <Entity text={{value: this.state.text, width: 2.0, align: "center"}} position="0 -0.5 -0.8" />
     }
-
-    console.log("Rendering")
 
     var that = this;
     return (
