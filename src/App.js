@@ -66,6 +66,11 @@ class App extends React.Component {
   }
 
   state = {
+    holding: {
+      image: "#wol2",
+      width: 1,
+      height: 1
+    },
     objects: {
       "wol": {
         id: 'wol',
@@ -141,7 +146,35 @@ class App extends React.Component {
 
     var text;
     if (this.state.text) {
-      text = <Entity text={{value: this.state.text, width: 2.0, align: "center"}} position="0 -0.5 -0.8" />
+      text = <Entity 
+        text={{value: this.state.text, width: 2.0, align: "center"}} 
+        position="0 -0.5 -0.8" 
+      />
+    }
+
+    var holding;
+    if (this.state.holding) {
+      const obj = this.state.holding
+      holding = <Entity 
+        primitive="a-image"
+        geometry={{
+          width: obj.width,
+          height: obj.height
+        }}
+        material={{
+          transparent: true,
+          opacity: 0.5,
+          alphaTest: 0.5,
+          src: obj.image
+        }}
+        id="holding"
+        position={{
+          x: 0,
+          y: 0,
+          z: -1.0
+        }}
+      />
+
     }
 
     var that = this;
@@ -157,6 +190,7 @@ class App extends React.Component {
             position="0 1 0"
             look-controls >
             {text}
+            {holding}
           </Entity>
         </Entity>
 
