@@ -8,6 +8,22 @@ require('aframe-extras');
 require('aframe-look-at-component')
 
 class App extends React.Component {
+  componentDidMount = () => {
+    var that = this // TODO: Shouldn't be necessary?
+
+    const interval = Math.min(...Object.values(this.state.objects)
+        .map((o) => o.animation ? o.animation.framerate : Infinity))
+    setInterval(() => {
+      const obj = that.state.objects["wol"]
+      let newFrame = obj.animation.currentFrame + 1
+      if (newFrame >= obj.animation.images.length) { newFrame = 0; }
+
+      let newAnimation = {...obj.animation, currentFrame: newFrame}
+      let newObj = {...obj, animation: newAnimation}
+      let newObjects = {...that.state.objects, wol: newObj}
+      that.setState({...that.state, objects: newObjects})
+    }, interval)
+  }
 
   clickedAnywhere = (e, scene) => {
     console.log("In clickedanywhere")
@@ -59,12 +75,16 @@ class App extends React.Component {
           height: 1
         },
         material: {
-          src: "#wol",
           transparent: true,
           alphaTest: 0.5
         },
         position: {x: 0.0, y: 1.0, z: -5.0},
-        text: "Howdy pardner!"
+        text: "Howdy pardner!",
+        animation: {
+          images: ["#wol", "#wol2"],
+          framerate: 300,
+          currentFrame: 1
+        }
       },
       "wol2": {
         id: 'wol2',
@@ -74,25 +94,34 @@ class App extends React.Component {
           height: 1.5
         },
         material: {
-          src: "#wol",
           transparent: true,
           alphaTest: 0.5
         },
         position: {x: 3.0, y: 1.5, z: -10.0},
-        text: "There's a snake in my boot!"
+        text: "There's a snake in my boot!",
+        image: "#wol"
       }
     }
   }
 
   render () {
     var images = [
-      ["wol", "WoL.png"]
+      ["wol", "WoL.png"],
+      ["wol2", "WoL2.png"]
     ]
 
     var sceneObjects = []
     for (var key in this.state.objects) {
       var o = this.state.objects[key]
       console.log(o.id)
+
+      if (o.image) {
+        o.material.src = o.image
+      } else if (o.animation) {
+        // TODO: This should really be a separate Aframe plugin that uses the Three.js lifecycle
+        o.material.src = o.animation.images[o.animation.currentFrame]
+      }
+
       sceneObjects.push(<Entity key={o.id}
         primitive={o.primitive}
         geometry={o.geometry}
