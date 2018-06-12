@@ -55,8 +55,6 @@ class App extends React.Component {
       // TODO: Proper 'click'. Could be sky. Handle dialog. Think through the ramifications for edit.
     }
 
-    console.log("Clicked anywhere", e)
-
     if (this.state.mode === Mode.PLAY) {
       this.handlePlayClick(e, scene)
     } else if (this.state.mode === Mode.EDIT) {
@@ -98,7 +96,6 @@ class App extends React.Component {
         }
       }
       this.setState({objects, holding: undefined})
-      console.log("Undoing the holding")
     } else {
       let intersectedEls = scene.components.raycaster.intersectedEls || []
       if (intersectedEls.length > 1 ) {
