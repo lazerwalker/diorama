@@ -20,13 +20,25 @@ class App extends React.Component {
         .map((o) => o.animation ? o.animation.framerate : Infinity))
     setInterval(() => {
       const obj = that.state.objects["wol"]
-      let newFrame = obj.animation.currentFrame + 1
-      if (newFrame >= obj.animation.images.length) { newFrame = 0; }
+      if (obj) {
+        let newFrame = obj.animation.currentFrame + 1
+        if (newFrame >= obj.animation.images.length) { newFrame = 0; }
 
-      let newAnimation = {...obj.animation, currentFrame: newFrame}
-      let newObj = {...obj, animation: newAnimation}
-      let newObjects = {...that.state.objects, wol: newObj}
-      that.setState({objects: newObjects})
+        let newAnimation = {...obj.animation, currentFrame: newFrame}
+        let newObj = {...obj, animation: newAnimation}
+        let newObjects = {...that.state.objects, wol: newObj}
+        that.setState({objects: newObjects})
+      }
+
+      if (that.state.holding && that.state.holding.animation) {
+        let holding = that.state.holding
+        let newFrame = holding.animation.currentFrame + 1
+        if (newFrame >= holding.animation.images.length) { newFrame = 0; }
+
+        let newAnimation = {...holding.animation, currentFrame: newFrame}
+        let newObj = {...holding, animation: newAnimation}
+        that.setState({holding: newObj})
+      }
     }, interval)
   }
 
@@ -81,7 +93,8 @@ class App extends React.Component {
             z: cameraPos.z + holdingPos.z
           },
           text: holding.text,
-          image: holding.image
+          image: holding.image,
+          animation: {...holding.animation}
         }
       }
       this.setState({objects, holding: undefined})
@@ -219,6 +232,7 @@ class App extends React.Component {
     var holding;
     if (this.state.mode === Mode.EDIT && !!this.state.holding) {
       const obj = this.state.holding
+      
       holding = <Entity 
         primitive="a-image"
         geometry={{
@@ -229,7 +243,7 @@ class App extends React.Component {
           transparent: true,
           opacity: 0.5,
           alphaTest: 0.5,
-          src: obj.image
+          src: (obj.image ? obj.image : obj.animation.images[obj.animation.currentFrame])
         }}
         id="holding"
         position={{
