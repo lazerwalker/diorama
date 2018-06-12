@@ -7,8 +7,13 @@ import React from 'react';
 require('aframe-extras');
 require('aframe-look-at-component')
 
+const Mode = {
+  EDIT: "edit",
+  PLAY: "play"
+}
+
 class App extends React.Component {
-  componentDidMount = () => {
+  componentDidMount() {
     var that = this // TODO: Shouldn't be necessary?
 
     const interval = Math.min(...Object.values(this.state.objects)
@@ -21,16 +26,89 @@ class App extends React.Component {
       let newAnimation = {...obj.animation, currentFrame: newFrame}
       let newObj = {...obj, animation: newAnimation}
       let newObjects = {...that.state.objects, wol: newObj}
-      that.setState({...that.state, objects: newObjects})
+      that.setState({objects: newObjects})
     }, interval)
   }
 
-  clickedAnywhere = (e, scene) => {
-    console.log("In clickedanywhere")
+  clickedAnywhere(e, scene) {
+    if (e.target === document.getElementById("scene")) {
+      return
+    }
+
     if (!(scene.components && scene.components.raycaster)) { 
       return
     }
-   
+
+    if (e.isTrusted) {
+      // TODO: Proper 'click'. Could be sky. Handle dialog. Think through the ramifications for edit.
+    }
+
+    console.log("Clicked anywhere", e)
+
+    if (this.state.mode === Mode.PLAY) {
+      this.handlePlayClick(e, scene)
+    } else if (this.state.mode === Mode.EDIT) {
+      this.handleEditClick(e, scene)
+    }
+  }
+
+  handleEditClick(e, scene) {
+    if (e.isTrusted) return
+
+    const cameraPos = document.querySelector("#rig").getAttribute('position')
+
+    if (!!this.state.holding) {
+      const holdingPos = document.querySelector("#holding").getAttribute('position')    
+
+      // TODO: Position doesn't take mouse cursor into account
+
+      const holding = this.state.holding
+      const objects = {...this.state.objects, 
+        [holding.id]: {
+          id: holding.id,
+          primitive: "a-image",
+          geometry: {
+            width: holding.width,
+            height: holding.height
+          },
+          material: {
+            transparent: true,
+            alphaTest: 0.5
+          },
+          position: {
+            x: cameraPos.x + holdingPos.x,
+            y: cameraPos.y + holdingPos.y + holding.height/2,
+            z: cameraPos.z + holdingPos.z
+          },
+          text: holding.text,
+          image: holding.image
+        }
+      }
+      this.setState({objects, holding: undefined})
+      console.log("Undoing the holding")
+    } else {
+      let intersectedEls = scene.components.raycaster.intersectedEls || []
+      if (intersectedEls.length > 1 ) {
+        console.log("OOPS OOPS OOPS HAD MORE THAN ONE INTERSECTED EL", intersectedEls)
+      }
+
+      const el = intersectedEls[0]
+      const object = this.state.objects[el.id]
+
+      const holding = {
+        id: object.id,
+        image: object.image,
+        animation: object.animation,
+        width: object.geometry.width,
+        height: object.geometry.height,
+      }
+      const objects = {...this.state.objects}
+      delete objects[object.id]
+      this.setState({objects, holding})
+    }
+  }
+  
+  handlePlayClick(e, scene) {
     var oldTextObj = this.state.textObj
 
     if (this.state.text !== undefined) {
@@ -40,11 +118,11 @@ class App extends React.Component {
     let intersectedEls = scene.components.raycaster.intersectedEls || []
     for (var i = 0; i < intersectedEls.length; i++) {
       let el = intersectedEls[i];
-      this.handleClick(el, oldTextObj)
+      this.tryToShowDialog(el, oldTextObj)
     }
   }
 
-  handleClick = (el, oldTextObj) => {
+  tryToShowDialog(el, oldTextObj) {
     if (el === oldTextObj) return
 
     let obj = this.state.objects[el.id]
@@ -66,10 +144,13 @@ class App extends React.Component {
   }
 
   state = {
+    mode: Mode.EDIT,
     holding: {
+      id: 'wol2',
       image: "#wol2",
-      width: 1,
-      height: 1
+      width: 1.5,
+      height: 1.5,
+      text: "Woah, I was placed!"
     },
     objects: {
       "wol": {
@@ -90,26 +171,11 @@ class App extends React.Component {
           framerate: 300,
           currentFrame: 1
         }
-      },
-      "wol2": {
-        id: 'wol2',
-        primitive: "a-image",
-        geometry: {
-          width: 1.5,
-          height: 1.5
-        },
-        material: {
-          transparent: true,
-          alphaTest: 0.5
-        },
-        position: {x: 3.0, y: 1.5, z: -10.0},
-        text: "There's a snake in my boot!",
-        image: "#wol"
       }
     }
   }
 
-  render () {
+  render() {
     var images = [
       ["wol", "WoL.png"],
       ["wol2", "WoL2.png"]
@@ -118,7 +184,6 @@ class App extends React.Component {
     var sceneObjects = []
     for (var key in this.state.objects) {
       var o = this.state.objects[key]
-      console.log(o.id)
 
       if (o.image) {
         o.material.src = o.image
@@ -133,7 +198,6 @@ class App extends React.Component {
         material={o.material}
         position={o.position}
         events={o.events}
-        text={o.text}
         id={o.id}
         // look-at="[camera]"
       />)
@@ -153,7 +217,7 @@ class App extends React.Component {
     }
 
     var holding;
-    if (this.state.holding) {
+    if (this.state.mode === Mode.EDIT && !!this.state.holding) {
       const obj = this.state.holding
       holding = <Entity 
         primitive="a-image"
@@ -199,7 +263,7 @@ class App extends React.Component {
         <a-entity laser-controls="hand: left"></a-entity>
 
         <Entity primitive="a-plane" height="100" width="100" rotation="-90 0 0" color="#333333"/>
-        <Entity primitive="a-sky" color="#6EBAA7" events={{click: this.clickedAnywhere}}/>
+        <Entity primitive="a-sky" color="#6EBAA7"/>
         {sceneObjects}
       </Scene>
     );
