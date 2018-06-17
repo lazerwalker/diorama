@@ -225,7 +225,7 @@ class App extends React.Component {
       />
     }
 
-    var holding;
+    var cursor;
     if (this.state.mode === Mode.EDIT && !!this.state.holding) {
       const obj = this.state.holding
 
@@ -234,11 +234,20 @@ class App extends React.Component {
       holdingBillboard.id = "holding"
       holdingBillboard.position = {x: 0, y: 0, z: -1.0}
 
-      holding = this.billboardToEntity(holdingBillboard)
+      cursor = this.billboardToEntity(holdingBillboard)
+    } else {
+      cursor = <a-entity
+        position="0 0 -1"
+        geometry="primitive: ring; radiusInner: 0.005; radiusOuter: 0.01"
+        material="color: black; shader: flat"
+      />
     }
 
     return (
-      <Scene id="scene" cursor="rayOrigin: mouse" events={{click: this.clickedAnywhere }}>
+      <Scene id="scene"
+        cursor="rayOrigin: mouse"
+        events={{click: this.clickedAnywhere }}
+      >
         <a-assets>
           {sceneImages}
         </a-assets>
@@ -251,7 +260,7 @@ class App extends React.Component {
             position="0 1.6 0"
           >
             {text}
-            {holding}
+            {cursor}
           </Entity>
         </Entity>
 
