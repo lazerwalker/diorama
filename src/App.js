@@ -47,7 +47,7 @@ class App extends React.Component {
       return
     }
 
-    if (!(scene.components && scene.components.raycaster)) { 
+    if (!(scene.components && scene.components.raycaster)) {
       return
     }
 
@@ -68,12 +68,12 @@ class App extends React.Component {
     const cameraPos = document.querySelector("#rig").getAttribute('position')
 
     if (!!this.state.holding) {
-      const holdingPos = document.querySelector("#holding").getAttribute('position')    
+      const holdingPos = document.querySelector("#holding").getAttribute('position')
 
       // TODO: Position doesn't take mouse cursor into account
 
       const holding = this.state.holding
-      const objects = {...this.state.objects, 
+      const objects = {...this.state.objects,
         [holding.id]: {
           id: holding.id,
           primitive: "a-image",
@@ -117,7 +117,7 @@ class App extends React.Component {
       this.setState({objects, holding})
     }
   }
-  
+
   handlePlayClick(e, scene) {
     var oldTextObj = this.state.textObj
 
@@ -150,7 +150,7 @@ class App extends React.Component {
       if (distance < 3) {
         this.setState({objects: this.state.objects, text: obj.text, textObj: el})
       }
-    } 
+    }
   }
 
   state = {
@@ -220,17 +220,17 @@ class App extends React.Component {
 
     var text;
     if (this.state.text) {
-      text = <Entity 
-        text={{value: this.state.text, width: 2.0, align: "center"}} 
-        position="0 -0.5 -0.8" 
+      text = <Entity
+        text={{value: this.state.text, width: 2.0, align: "center"}}
+        position="0 -0.5 -0.8"
       />
     }
 
     var holding;
     if (this.state.mode === Mode.EDIT && !!this.state.holding) {
       const obj = this.state.holding
-      
-      holding = <Entity 
+
+      holding = <Entity
         primitive="a-image"
         geometry={{
           width: obj.width,
@@ -262,7 +262,7 @@ class App extends React.Component {
           movement-controls
           position="0 0 0">
           <Entity camera
-            position="0 1 0"
+            position="0 1.6 0"
             look-controls >
             {text}
             {holding}
