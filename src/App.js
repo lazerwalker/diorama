@@ -239,7 +239,7 @@ class App extends React.Component {
           {sceneImages}
         </a-assets>
         <Entity id="rig"
-          movement-controls
+          movement-controls={`fly: ${this.state.mode === Mode.EDIT}`}
           position="0 0 0">
           <Entity id="camera"
             camera
