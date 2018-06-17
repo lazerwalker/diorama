@@ -139,13 +139,6 @@ class App extends React.Component {
 
   state = {
     mode: Mode.EDIT,
-    holding: {
-      id: 'wol2',
-      image: "#wol2",
-      width: 1.4,
-      height: 1.6,
-      text: "Woah, I was placed!"
-    },
     objects: {
       "wol": {
         id: 'wol',
@@ -158,6 +151,14 @@ class App extends React.Component {
           framerate: 300,
           currentFrame: 1
         }
+      },
+      "wol2": {
+        id: 'wol2',
+        image: "#wol2",
+        width: 1.4,
+        height: 1.6,
+        position: {x: 3.0, y: 1.6, z: -8.0},
+        text: "Woah, I was placed!"
       }
     }
   }
