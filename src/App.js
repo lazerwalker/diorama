@@ -65,10 +65,8 @@ class App extends React.Component {
   handleEditClick(e, scene) {
     if (e.isTrusted) return
 
-    if (!!this.state.holding) {
+    if (this.state.holding) {
       const holdingObject3D = document.querySelector("#holding").object3D
-
-      // TODO: Need to figure out how to use cameraAngle to get corrected offsets
 
       const holding = this.state.holding
       const objects = {...this.state.objects,
@@ -81,11 +79,17 @@ class App extends React.Component {
       this.setState({objects, holding: undefined})
     } else {
       let intersectedEls = scene.components.raycaster.intersectedEls || []
-      if (intersectedEls.length > 1 ) {
+      if (intersectedEls.length == 0) {
+        return
+      } else if (intersectedEls.length > 1 ) {
         console.log("OOPS OOPS OOPS HAD MORE THAN ONE INTERSECTED EL", intersectedEls)
       }
 
       const el = intersectedEls[0]
+      if (el.tagName != 'A-IMAGE') {
+        return
+      }
+
       const object = this.state.objects[el.id]
 
       const holding = {...object}
@@ -243,7 +247,7 @@ class App extends React.Component {
           position="0 0 0">
           <Entity id="camera"
             camera
-            look-controls
+            look-controls="pointer-lock-enabled: true"
             position="0 1.6 0"
           >
             {text}
