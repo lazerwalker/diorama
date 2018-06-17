@@ -42,8 +42,9 @@ class App extends React.Component {
     }, interval)
   }
 
-  clickedAnywhere(e, scene) {
-    if (e.target === document.getElementById("scene")) {
+  clickedAnywhere = (e) => {
+    const scene = document.getElementById("scene")
+    if (e.target === scene) {
       return
     }
 
@@ -79,14 +80,14 @@ class App extends React.Component {
       this.setState({objects, holding: undefined})
     } else {
       let intersectedEls = scene.components.raycaster.intersectedEls || []
-      if (intersectedEls.length == 0) {
+      if (intersectedEls.length === 0) {
         return
       } else if (intersectedEls.length > 1 ) {
         console.log("OOPS OOPS OOPS HAD MORE THAN ONE INTERSECTED EL", intersectedEls)
       }
 
       const el = intersectedEls[0]
-      if (el.tagName != 'A-IMAGE') {
+      if (el.tagName !== 'A-IMAGE') {
         return
       }
 
@@ -236,9 +237,8 @@ class App extends React.Component {
       holding = this.billboardToEntity(holdingBillboard)
     }
 
-    var that = this;
     return (
-      <Scene id="scene" cursor="rayOrigin: mouse" events={{click: function(e) { that.clickedAnywhere(e, this) }}}>
+      <Scene id="scene" cursor="rayOrigin: mouse" events={{click: this.clickedAnywhere }}>
         <a-assets>
           {sceneImages}
         </a-assets>
