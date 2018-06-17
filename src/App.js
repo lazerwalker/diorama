@@ -32,7 +32,6 @@ class App extends React.Component {
 
       if (that.state.holding && that.state.holding.animation) {
         let holding = that.state.holding
-        console.log(holding)
         let newFrame = holding.animation.currentFrame + 1
         if (newFrame >= holding.animation.images.length) { newFrame = 0; }
 
@@ -66,22 +65,16 @@ class App extends React.Component {
   handleEditClick(e, scene) {
     if (e.isTrusted) return
 
-    const cameraPos = document.querySelector("#rig").getAttribute('position')
-
     if (!!this.state.holding) {
-      const holdingPos = document.querySelector("#holding").getAttribute('position')
+      const holdingObject3D = document.querySelector("#holding").object3D
 
-      // TODO: Position doesn't take mouse cursor into account
+      // TODO: Need to figure out how to use cameraAngle to get corrected offsets
 
       const holding = this.state.holding
-      console.log(cameraPos.y, holdingPos.y, holding.height)
       const objects = {...this.state.objects,
         [holding.id]: {...holding,
-          position: {
-            x: cameraPos.x + holdingPos.x,
-            y: cameraPos.y + holdingPos.y + holding.height/2,
-            z: cameraPos.z + holdingPos.z
-          }
+          position: holdingObject3D.getWorldPosition(),
+          rotation: document.querySelector("#camera").getAttribute('rotation') // TODO: get from Object3D?
         }
       }
 
@@ -193,6 +186,7 @@ class App extends React.Component {
       geometry={o.geometry}
       material={o.material}
       position={o.position}
+      rotation={o.rotation}
       events={o.events}
       id={o.id}
       // look-at="[camera]"
@@ -200,7 +194,6 @@ class App extends React.Component {
   }
 
   render() {
-    console.log(this.state)
     var images = [
       ["wol", "WoL.png"],
       ["wol2", "WoL2.png"]
@@ -247,9 +240,11 @@ class App extends React.Component {
         <Entity id="rig"
           movement-controls
           position="0 0 0">
-          <Entity camera
+          <Entity id="camera"
+            camera
+            look-controls
             position="0 1.6 0"
-            look-controls >
+          >
             {text}
             {holding}
           </Entity>
