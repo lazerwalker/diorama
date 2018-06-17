@@ -89,6 +89,7 @@ class App extends React.Component {
       const object = this.state.objects[el.id]
 
       const holding = {...object}
+      delete holding.rotation
 
       const objects = {...this.state.objects}
       delete objects[object.id]
