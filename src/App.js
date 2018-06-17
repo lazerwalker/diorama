@@ -32,6 +32,7 @@ class App extends React.Component {
 
       if (that.state.holding && that.state.holding.animation) {
         let holding = that.state.holding
+        console.log(holding)
         let newFrame = holding.animation.currentFrame + 1
         if (newFrame >= holding.animation.images.length) { newFrame = 0; }
 
@@ -73,28 +74,17 @@ class App extends React.Component {
       // TODO: Position doesn't take mouse cursor into account
 
       const holding = this.state.holding
+      console.log(cameraPos.y, holdingPos.y, holding.height)
       const objects = {...this.state.objects,
-        [holding.id]: {
-          id: holding.id,
-          primitive: "a-image",
-          geometry: {
-            width: holding.width,
-            height: holding.height
-          },
-          material: {
-            transparent: true,
-            alphaTest: 0.5
-          },
+        [holding.id]: {...holding,
           position: {
             x: cameraPos.x + holdingPos.x,
             y: cameraPos.y + holdingPos.y + holding.height/2,
             z: cameraPos.z + holdingPos.z
-          },
-          text: holding.text,
-          image: holding.image,
-          animation: {...holding.animation}
+          }
         }
       }
+
       this.setState({objects, holding: undefined})
     } else {
       let intersectedEls = scene.components.raycaster.intersectedEls || []
@@ -105,13 +95,8 @@ class App extends React.Component {
       const el = intersectedEls[0]
       const object = this.state.objects[el.id]
 
-      const holding = {
-        id: object.id,
-        image: object.image,
-        animation: object.animation,
-        width: object.geometry.width,
-        height: object.geometry.height,
-      }
+      const holding = {...object}
+
       const objects = {...this.state.objects}
       delete objects[object.id]
       this.setState({objects, holding})
@@ -158,23 +143,16 @@ class App extends React.Component {
     holding: {
       id: 'wol2',
       image: "#wol2",
-      width: 1.5,
-      height: 1.5,
+      width: 1.4,
+      height: 1.6,
       text: "Woah, I was placed!"
     },
     objects: {
       "wol": {
         id: 'wol',
-        primitive: "a-image",
-        geometry: {
-          width: 1,
-          height: 1
-        },
-        material: {
-          transparent: true,
-          alphaTest: 0.5
-        },
-        position: {x: 0.0, y: 1.0, z: -5.0},
+        width: 1.4,
+        height: 1.6,
+        position: {x: 0.0, y: 1.6, z: -5.0},
         text: "Howdy pardner!",
         animation: {
           images: ["#wol", "#wol2"],
@@ -185,7 +163,44 @@ class App extends React.Component {
     }
   }
 
+  toBillboard(obj) {
+    const newObj = {
+      geometry: {
+        width: obj.width,
+        height: obj.height
+      },
+      material: {
+        transparent: true,
+        alphaTest: 0.5
+      },
+      primitive: "a-image",
+      ...obj
+    }
+
+    if (obj.image) {
+      newObj.material.src = obj.image
+    } else if (obj.animation) {
+      // TODO: This should really be a separate Aframe plugin that uses the Three.js lifecycle
+      newObj.material.src = obj.animation.images[obj.animation.currentFrame]
+    }
+
+    return newObj
+  }
+
+  billboardToEntity(o) {
+   return <Entity key={o.id}
+      primitive={o.primitive}
+      geometry={o.geometry}
+      material={o.material}
+      position={o.position}
+      events={o.events}
+      id={o.id}
+      // look-at="[camera]"
+    />
+  }
+
   render() {
+    console.log(this.state)
     var images = [
       ["wol", "WoL.png"],
       ["wol2", "WoL2.png"]
@@ -194,23 +209,8 @@ class App extends React.Component {
     var sceneObjects = []
     for (var key in this.state.objects) {
       var o = this.state.objects[key]
-
-      if (o.image) {
-        o.material.src = o.image
-      } else if (o.animation) {
-        // TODO: This should really be a separate Aframe plugin that uses the Three.js lifecycle
-        o.material.src = o.animation.images[o.animation.currentFrame]
-      }
-
-      sceneObjects.push(<Entity key={o.id}
-        primitive={o.primitive}
-        geometry={o.geometry}
-        material={o.material}
-        position={o.position}
-        events={o.events}
-        id={o.id}
-        // look-at="[camera]"
-      />)
+      var billboard = this.toBillboard(o)
+      sceneObjects.push(this.billboardToEntity(billboard))
     }
 
     var sceneImages = images.map(function(arr) {
@@ -230,26 +230,12 @@ class App extends React.Component {
     if (this.state.mode === Mode.EDIT && !!this.state.holding) {
       const obj = this.state.holding
 
-      holding = <Entity
-        primitive="a-image"
-        geometry={{
-          width: obj.width,
-          height: obj.height
-        }}
-        material={{
-          transparent: true,
-          opacity: 0.5,
-          alphaTest: 0.5,
-          src: (obj.image ? obj.image : obj.animation.images[obj.animation.currentFrame])
-        }}
-        id="holding"
-        position={{
-          x: 0,
-          y: 0,
-          z: -1.0
-        }}
-      />
+      const holdingBillboard = this.toBillboard(obj)
+      holdingBillboard.material.opacity = 0.5
+      holdingBillboard.id = "holding"
+      holdingBillboard.position = {x: 0, y: 0, z: -1.0}
 
+      holding = this.billboardToEntity(holdingBillboard)
     }
 
     var that = this;
