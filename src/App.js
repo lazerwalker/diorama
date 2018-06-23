@@ -1,8 +1,5 @@
 import 'aframe';
-import {Entity, Scene} from 'aframe-react';
-import React from 'react';
 
-// TODO: Remvoe aframe-react.
 // See how the default event system works in terms of clicking on things, and if I can get the behavior I want of "click on anything = remove text"
 require('aframe-extras');
 require('aframe-look-at-component')
@@ -12,34 +9,125 @@ const Mode = {
   PLAY: "play"
 }
 
-class App extends React.Component {
-  componentDidMount() {
-    var that = this // TODO: Shouldn't be necessary?
-
-    const interval = Math.min(...Object.values(this.state.objects)
-        .map((o) => o.animation ? o.animation.framerate : Infinity))
-    setInterval(() => {
-      const obj = that.state.objects["wol"]
-      if (obj) {
-        let newFrame = obj.animation.currentFrame + 1
-        if (newFrame >= obj.animation.images.length) { newFrame = 0; }
-
-        let newAnimation = {...obj.animation, currentFrame: newFrame}
-        let newObj = {...obj, animation: newAnimation}
-        let newObjects = {...that.state.objects, wol: newObj}
-        that.setState({objects: newObjects})
+class App {
+  state = {
+    mode: Mode.EDIT,
+    objects: {
+      "wol": {
+        id: 'wol',
+        width: 1.4,
+        height: 1.6,
+        position: {x: 0.0, y: 1.6, z: -5.0},
+        text: "Howdy pardner!",
+        animation: {
+          images: ["#wol", "#wol2"],
+          framerate: 300,
+          currentFrame: 1
+        }
+      },
+      "wol2": {
+        id: 'wol2',
+        image: "#wol2",
+        width: 1.4,
+        height: 1.6,
+        position: {x: 3.0, y: 1.6, z: -8.0},
+        text: "Woah, I was placed!"
       }
+    }
+  }
+    constructor() {
+    //  const interval = Math.min(...Object.values(this.state.objects)
+    //     .map((o) => o.animation ? o.animation.framerate : Infinity))
+    // setInterval(() => {
+    //   const obj = this.state.objects["wol"]
+    //   if (obj) {
+    //     let newFrame = obj.animation.currentFrame + 1
+    //     if (newFrame >= obj.animation.images.length) { newFrame = 0; }
 
-      if (that.state.holding && that.state.holding.animation) {
-        let holding = that.state.holding
-        let newFrame = holding.animation.currentFrame + 1
-        if (newFrame >= holding.animation.images.length) { newFrame = 0; }
+    //     let newAnimation = {...obj.animation, currentFrame: newFrame}
+    //     let newObj = {...obj, animation: newAnimation}
+    //     let newObjects = {...that.state.objects, wol: newObj}
+    //     this.setState({objects: newObjects})
+    //   }
 
-        let newAnimation = {...holding.animation, currentFrame: newFrame}
-        let newObj = {...holding, animation: newAnimation}
-        that.setState({holding: newObj})
-      }
-    }, interval)
+    //   if (this.state.holding && that.state.holding.animation) {
+    //     let holding = that.state.holding
+    //     let newFrame = holding.animation.currentFrame + 1
+    //     if (newFrame >= holding.animation.images.length) { newFrame = 0; }
+
+    //     let newAnimation = {...holding.animation, currentFrame: newFrame}
+    //     let newObj = {...holding, animation: newAnimation}
+    //     that.setState({holding: newObj})
+    //   }
+    // }, interval)
+    
+    this.createScene()
+    this.el = document.querySelector('a-scene');
+    Object.keys(this.state.objects).forEach(key => {
+      const element = this.state.objects[key]
+      const el = this.billboardToEntity(element)
+      this.el.appendChild(el)
+    });
+  }
+
+  createScene() {
+    const el = document.createElement('a-scene');
+    el.id= "scene"
+    el.setAttribute('cursor', 'rayOrigin: mouse')
+
+    const assetList = {
+      wol: "WoL.png",
+      wol2: "WoL2.png"
+    }
+
+    const assets = document.createElement('a-assets')
+    Object.keys(assetList).forEach((key) => {
+      const img = document.createElement('img')
+      img.id = key
+      img.src = assetList[key]
+
+      assets.appendChild(img)
+    })
+    el.appendChild(assets)
+
+    const rig = document.createElement('a-entity')
+    rig.id = 'rig'
+    rig.setAttribute('movement-control')
+    rig.setAttribute('position', '0 0 0')
+    el.appendChild(rig)
+
+    const camera = document.createElement('a-camera')
+    // camera.setAttribute('look-controls', 'pointer-lock-enabled: true')
+    camera.setAttribute('position', '0 1.6 0')
+    rig.appendChild(camera)
+
+    // TODO: Append cursor/text to camera
+
+    const leftHand = document.createElement('a-entity')
+    leftHand.setAttribute('hand-controls', 'left')
+    el.appendChild(leftHand)
+
+    const rightHand = document.createElement('a-entity')
+    leftHand.setAttribute('hand-controls', 'right')
+    el.appendChild(rightHand)
+
+    const laser = document.createElement('a-entity')
+    laser.setAttribute('laser-controls', 'hand: left')
+    el.appendChild(laser)
+
+    const plane = document.createElement('a-plane')
+    plane.setAttribute('height', 100)
+    plane.setAttribute('width', 100)
+    plane.setAttribute('rotation', '-90 0 0 ')
+    plane.setAttribute('color', '#333333')
+    el.appendChild(plane)
+
+    const sky = document.createElement('a-sky')
+    sky.setAttribute('color', '#6EBAA7')
+    el.appendChild(sky)
+
+    document.getElementById('root').appendChild(el)
+    this.el = el
   }
 
   clickedAnywhere = (e) => {
@@ -67,17 +155,7 @@ class App extends React.Component {
     if (e.isTrusted) return
 
     if (this.state.holding) {
-      const holdingObject3D = document.querySelector("#holding").object3D
-
-      const holding = this.state.holding
-      const objects = {...this.state.objects,
-        [holding.id]: {...holding,
-          position: holdingObject3D.getWorldPosition(),
-          rotation: document.querySelector("#camera").getAttribute('rotation') // TODO: get from Object3D?
-        }
-      }
-
-      this.setState({objects, holding: undefined})
+      this.dropBillboard()
     } else {
       let intersectedEls = scene.components.raycaster.intersectedEls || []
       if (intersectedEls.length === 0) {
@@ -92,13 +170,7 @@ class App extends React.Component {
       }
 
       const object = this.state.objects[el.id]
-
-      const holding = {...object}
-      delete holding.rotation
-
-      const objects = {...this.state.objects}
-      delete objects[object.id]
-      this.setState({objects, holding})
+      this.pickUp(object)
     }
   }
 
@@ -106,7 +178,7 @@ class App extends React.Component {
     var oldTextObj = this.state.textObj
 
     if (this.state.text !== undefined) {
-      this.setState({text: undefined, textObj: undefined})
+      this.hideText()
     }
 
     let intersectedEls = scene.components.raycaster.intersectedEls || []
@@ -132,37 +204,12 @@ class App extends React.Component {
       )
 
       if (distance < 3) {
-        this.setState({objects: this.state.objects, text: obj.text, textObj: el})
+        this.setText(obj.text)
       }
     }
   }
 
-  state = {
-    mode: Mode.EDIT,
-    objects: {
-      "wol": {
-        id: 'wol',
-        width: 1.4,
-        height: 1.6,
-        position: {x: 0.0, y: 1.6, z: -5.0},
-        text: "Howdy pardner!",
-        animation: {
-          images: ["#wol", "#wol2"],
-          framerate: 300,
-          currentFrame: 1
-        }
-      },
-      "wol2": {
-        id: 'wol2',
-        image: "#wol2",
-        width: 1.4,
-        height: 1.6,
-        position: {x: 3.0, y: 1.6, z: -8.0},
-        text: "Woah, I was placed!"
-      }
-    }
-  }
-
+  // TODO: I don't know what this means.
   toBillboard(obj) {
     const newObj = {
       geometry: {
@@ -173,10 +220,10 @@ class App extends React.Component {
         transparent: true,
         alphaTest: 0.5
       },
-      primitive: "a-image",
       ...obj
     }
 
+    // TODO: lol?
     if (obj.image) {
       newObj.material.src = obj.image
     } else if (obj.animation) {
@@ -188,18 +235,61 @@ class App extends React.Component {
   }
 
   billboardToEntity(o) {
-   return <Entity key={o.id}
-      primitive={o.primitive}
-      geometry={o.geometry}
-      material={o.material}
-      position={o.position}
-      rotation={o.rotation}
-      events={o.events}
-      id={o.id}
-      // look-at="[camera]"
-    />
+    var el = document.createElement('a-image');
+    Object.keys(o).forEach((key) => {
+      el.setAttribute(key, o[key])
+    })
+
+    if (o.image) {
+      el.setAttribute('material', {src: o.image })
+    } else if (o.animation) {
+      // TODO: This should really be a separate Aframe plugin that uses the Three.js lifecycle
+      el.setAttribute('material', {src: o.animation.images[o.animation.currentFrame] })
+    }
+
+    el.setAttribute('image')
+
+    return el
   }
 
+  setText(text) {
+
+  }
+
+  hideText() {
+
+  }
+
+  addBillboard(billboard) {
+
+  }
+
+  removeBillboard(billboard) {
+
+  }
+
+  pickUp(billboard) {
+    const holding = {...billboard}
+    delete holding.rotation
+
+    const objects = {...this.state.objects}
+    delete objects[billboard.id]
+  }
+
+  dropBillboard() {
+    const holdingObject3D = document.querySelector("#holding").object3D
+
+    const holding = this.state.holding
+    const objects = {...this.state.objects,
+      [holding.id]: {...holding,
+        position: holdingObject3D.getWorldPosition(),
+        rotation: document.querySelector("#camera").getAttribute('rotation') // TODO: get from Object3D?
+      }
+    }
+    // TODO: Actually set
+  }
+
+  /*
   render() {
     var images = [
       ["wol", "WoL.png"],
@@ -275,6 +365,7 @@ class App extends React.Component {
       </Scene>
     );
   }
+  */
 }
 
 export default App
