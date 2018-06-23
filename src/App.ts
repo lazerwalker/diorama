@@ -1,8 +1,14 @@
 import 'aframe';
+import { Vector3 } from 'three';
 
 // See how the default event system works in terms of clicking on things, and if I can get the behavior I want of "click on anything = remove text"
 require('aframe-extras');
 require('aframe-look-at-component')
+
+// TODO: Make an A-Frame DefinitelyTyped PR!
+interface AFrameElement extends HTMLElement {
+  setAttribute: ((first: string, second?: string, third?: any) => void);
+}
 
 enum Mode {
   EDIT = "edit",
@@ -58,15 +64,15 @@ class App {
     }
   }
 
-  private el: HTMLElement
-  private camera: HTMLElement
-  private cursor: HTMLElement
-  private rig: HTMLElement
+  private el: AFrameElement
+  private camera: AFrameElement
+  private cursor: AFrameElement
+  private rig: AFrameElement
 
-  private textEl?: HTMLElement
-  private holdingEl?: HTMLElement
+  private textEl?: AFrameElement
+  private holdingEl?: AFrameElement
 
-  private elMap: {[id: string]: HTMLElement}
+  private elMap: {[id: string]: AFrameElement}
 
   private objectLastClicked?: Date
   
@@ -242,6 +248,28 @@ class App {
       el.setAttribute('material', 'opacity', 0.5)  
       el.setAttribute('position', {x: 0, y: 0, z: -1.0})
     } else {
+      if (this.state.mode === Mode.PLAY && o.text) {
+        // TODO: Thise could happen via A-Frame components. Is there a perf reason to do so?
+        el.addEventListener('mouseenter', (e) => {
+          if (this.isCloseEnoughToInteract(el)) {
+            this.cursor.setAttribute('material', 'color', 'green')
+          }
+        })
+
+        el.addEventListener('mouseleave', (e) => {
+          this.cursor.setAttribute('material', 'color', 'black')
+        })
+      } else if (this.state.mode === Mode.EDIT) {
+        el.addEventListener('mouseenter', (e) => {
+          this.cursor.setAttribute('material', 'color', 'green')
+        })
+
+        el.addEventListener('mouseleave', (e) => {
+          this.cursor.setAttribute('material', 'color', 'black')
+        })
+      }
+
+
       el.addEventListener('click', (e) => { 
         this.objectLastClicked = new Date()
   
@@ -253,16 +281,7 @@ class App {
             if (obj.text === this.state.text) {
               this.hideText()
             } else {
-              const position = el.getAttribute('position')
-              const cameraPos: any = this.rig.getAttribute('position')
-
-              if (cameraPos === undefined || cameraPos.x === undefined) { return }
-              const distance = Math.sqrt(
-                Math.pow(position.x - cameraPos.x, 2) +
-                Math.pow(position.z - cameraPos.z, 2)
-              )
-
-              if (distance < 3) {
+              if (this.isCloseEnoughToInteract(el, 3)) {
                 this.showText(obj.text)
               }
             }
@@ -357,6 +376,19 @@ class App {
     }
 
     this.state.mode = mode
+  }
+
+  private isCloseEnoughToInteract(el: AFrameElement, threshold: number = 3) {
+    const position: Vector3 = (el.getAttribute('position') as any) as Vector3
+    const cameraPos: any = this.rig.getAttribute('position')
+
+    if (cameraPos === undefined || cameraPos.x === undefined) { return }
+    const distance = Math.sqrt(
+      Math.pow(position.x - cameraPos.x, 2) +
+      Math.pow(position.z - cameraPos.z, 2)
+    )
+
+    return distance < threshold
   }
 
   private imageForObject(obj: Billboard): string|undefined {
