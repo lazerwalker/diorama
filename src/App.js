@@ -14,24 +14,25 @@ class App {
     mode: Mode.PLAY,
     objects: {
       "wol": {
-        id: 'wol',
-        width: 1.4,
+        animation: {
+          currentFrame: 1,
+          framerate: 300,
+          images: ["#wol", "#wol2"]
+        },
         height: 1.6,
+        id: 'wol',
         position: {x: 0.0, y: 1.6, z: -5.0},
         text: "Howdy pardner!",
-        animation: {
-          images: ["#wol", "#wol2"],
-          framerate: 300,
-          currentFrame: 1
-        }
+        width: 1.4
+
       },
       "wol2": {
+        height: 1.6,
         id: 'wol2',
         image: "#wol2",
-        width: 1.4,
-        height: 1.6,
         position: {x: 3.0, y: 1.6, z: -8.0},
-        text: "Woah, I was placed!"
+        text: "Woah, I was placed!",
+        width: 1.4
       }
     }
   }
@@ -166,10 +167,10 @@ class App {
   }
 
   tryToShowDialog(el, oldTextObj) {
-    if (el === oldTextObj) return
+    if (el === oldTextObj) { return }
 
     let obj = this.state.objects[el.id]
-    if (!(obj && obj.text)) return
+    if (!(obj && obj.text)) { return }
 
     const position = el.getAttribute('position')
     const cameraPos = this.rig.getAttribute('position')
@@ -195,8 +196,8 @@ class App {
     el.objectId = o.id
 
     let material = {
-      transparent: true,
-      alphaTest: 0.5
+      alphaTest: 0.5,
+      transparent: true
     }
 
     material.src = this.imageForObject(o)
