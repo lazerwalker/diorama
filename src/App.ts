@@ -272,7 +272,12 @@ class App {
     this.state.text = text
 
     const textEl = document.createElement('a-entity')
-    textEl.setAttribute('text', {value: this.state.text, width: 2.0, align: "center"})
+    textEl.setAttribute('text', {
+      align: "center",
+      font: './Roboto-msdf.json',
+      value: this.state.text, 
+      width: 2.0
+    })
     textEl.setAttribute('position', '0 -0.5 -0.8')
 
     this.camera.appendChild(textEl)
