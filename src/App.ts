@@ -113,6 +113,8 @@ class App {
       this.el.appendChild(el)
     });
 
+    document.addEventListener('keydown', this.handleKeyboard)
+
     this.el.addEventListener('click', (e) => {
       if (!e.isTrusted) { return }
 
@@ -135,6 +137,18 @@ class App {
         }
       }, 0)
     })
+  }
+
+  handleKeyboard = (e: KeyboardEvent) => {
+    const key = e.key
+
+    if (key === 'm') {
+      if (this.state.mode === Mode.EDIT) {
+        this.changeMode(Mode.PLAY)
+      } else if (this.state.mode === Mode.PLAY) {
+        this.changeMode(Mode.EDIT)
+      }        
+    }
   }
 
   createScene() {
@@ -331,7 +345,21 @@ class App {
     this.cursor.setAttribute('visible', 'true')
   }
 
-  imageForObject(obj: Billboard): string|undefined {
+  changeMode(mode: Mode) {
+    if (this.state.mode === Mode.EDIT) {
+      if (this.state.holding) {
+        this.placeBillboard()
+      }
+    } else if (this.state.mode === Mode.PLAY) {
+      if (this.state.text) {
+        this.hideText()
+      }
+    }
+
+    this.state.mode = mode
+  }
+
+  private imageForObject(obj: Billboard): string|undefined {
     if (obj.image) {
       return obj.image
     } else if (obj.animation) {
