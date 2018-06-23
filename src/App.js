@@ -11,7 +11,7 @@ const Mode = {
 
 class App {
   state = {
-    mode: Mode.EDIT,
+    mode: Mode.PLAY,
     objects: {
       "wol": {
         id: 'wol',
@@ -82,7 +82,6 @@ class App {
       // (and because they're synthetic, we can't just stop propagation)
       setTimeout(() => {
         const now = new Date()
-        console.log(now - this.objectLastClicked)
         if (now - this.objectLastClicked < 200) { return }
         if (this.state.mode === Mode.PLAY) {
           if (this.state.text) {
@@ -130,8 +129,6 @@ class App {
     camera.setAttribute('position', '0 1.6 0')
     rig.appendChild(camera)
     this.camera = camera
-
-    // TODO: Append cursor to camera
 
     const leftHand = document.createElement('a-entity')
     leftHand.setAttribute('hand-controls', 'left')
@@ -230,7 +227,6 @@ class App {
             this.pickUp(obj)
           }
         }
-        console.log("Object clicked", e) 
       })
     }
 
@@ -238,13 +234,24 @@ class App {
   }
 
   showText(text) {
+    if (this.state.text) {
+      this.hideText()
+    }
+
     this.state.text = text
+
+    const textEl = document.createElement('a-entity')
+    textEl.setAttribute('text', {value: this.state.text, width: 2.0, align: "center"})
+    textEl.setAttribute('position', '0 -0.5 -0.8')
+
+    this.camera.appendChild(textEl)
+    this.textEl = textEl
   }
 
   hideText() {
-    const text = this.el.querySelector("#text")
-    text.parentNode.removeChild(text)
-    this.state.text = undefined
+    this.textEl.parentNode.removeChild(this.textEl)
+    delete this.textEl
+    delete this.state.text
   }
 
   pickUp(obj) {
@@ -266,7 +273,7 @@ class App {
     const holdingEl = this.state.holdingEl
 
     const obj = this.state.objects[this.state.holding]
-    obj.position = holdingEl.object3D.getWorldPosition(),
+    obj.position = holdingEl.object3D.getWorldPosition()
     obj.rotation = holdingEl.parentNode.getAttribute('rotation')
 
     holdingEl.parentNode.removeChild(holdingEl)
@@ -288,84 +295,6 @@ class App {
       return obj.animation.images[obj.animation.currentFrame]
     }
   }
-
-  /*
-  render() {
-    var images = [
-      ["wol", "WoL.png"],
-      ["wol2", "WoL2.png"]
-    ]
-
-    var sceneObjects = []
-    for (var key in this.state.objects) {
-      var o = this.state.objects[key]
-      var billboard = this.toBillboard(o)
-      sceneObjects.push(this.billboardToEntity(billboard))
-    }
-
-    var sceneImages = images.map(function(arr) {
-      var [id, src] = arr
-      return (<img id={id} key={id} src={src} />)
-    })
-
-    var text;
-    if (this.state.text) {
-      text = <Entity
-        text={{value: this.state.text, width: 2.0, align: "center"}}
-        position="0 -0.5 -0.8"
-      />
-    }
-
-    var cursor;
-    if (this.state.mode === Mode.EDIT && !!this.state.holding) {
-      const obj = this.state.holding
-
-      const holdingBillboard = this.toBillboard(obj)
-      holdingBillboard.material.opacity = 0.5
-      holdingBillboard.id = "holding"
-      holdingBillboard.position = {x: 0, y: 0, z: -1.0}
-
-      cursor = this.billboardToEntity(holdingBillboard)
-    } else {
-      cursor = <a-entity
-        position="0 0 -1"
-        geometry="primitive: ring; radiusInner: 0.005; radiusOuter: 0.01"
-        material="color: black; shader: flat"
-      />
-    }
-
-    return (
-      <Scene id="scene"
-        cursor="rayOrigin: mouse"
-        events={{click: this.clickedAnywhere }}
-      >
-        <a-assets>
-          {sceneImages}
-        </a-assets>
-        <Entity id="rig"
-          movement-controls={`fly: ${this.state.mode === Mode.EDIT}`}
-          position="0 0 0">
-          <Entity id="camera"
-            camera
-            look-controls="pointer-lock-enabled: true"
-            position="0 1.6 0"
-          >
-            {text}
-            {cursor}
-          </Entity>
-        </Entity>
-
-        <a-entity hand-controls="left"></a-entity>
-        <a-entity hand-controls="right"></a-entity>
-        <a-entity laser-controls="hand: left"></a-entity>
-
-        <Entity primitive="a-plane" height="100" width="100" rotation="-90 0 0" color="#333333"/>
-        <Entity primitive="a-sky" color="#6EBAA7"/>
-        {sceneObjects}
-      </Scene>
-    );
-  }
-  */
 }
 
 export default App
