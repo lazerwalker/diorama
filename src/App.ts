@@ -57,16 +57,16 @@ class App {
       }
     }
   }
-  rig: Element // TODO: Just public to stop the linter from yelling we're not using it
 
-  private el: Element
-  private camera: Element
-  private cursor: Element
+  private el: HTMLElement
+  private camera: HTMLElement
+  private cursor: HTMLElement
+  private rig: HTMLElement
 
-  private textEl?: Element
-  private holdingEl?: Element
+  private textEl?: HTMLElement
+  private holdingEl?: HTMLElement
 
-  private elMap: {[id: string]: Element}
+  private elMap: {[id: string]: HTMLElement}
 
   private objectLastClicked?: Date
   
@@ -159,11 +159,10 @@ class App {
 
     const rig = document.createElement('a-entity')
     rig.id = 'rig'
-    rig.setAttribute('movement-control', undefined)
+    rig.setAttribute('movement-controls', "")
     rig.setAttribute('position', '0 0 0')
     this.rig = rig
     el.appendChild(rig)
-    console.log(rig)
 
     const camera = document.createElement('a-camera')
     camera.id = 'camera'
@@ -240,21 +239,18 @@ class App {
             if (obj.text === this.state.text) {
               this.hideText()
             } else {
+              const position = el.getAttribute('position')
+              const cameraPos: any = this.rig.getAttribute('position')
 
-              // const position = el.getAttribute('position')
-              // const cameraPos = this.rig.getAttribute('position')
+              if (cameraPos === undefined || cameraPos.x === undefined) { return }
+              const distance = Math.sqrt(
+                Math.pow(position.x - cameraPos.x, 2) +
+                Math.pow(position.z - cameraPos.z, 2)
+              )
 
-              // if (cameraPos.x !== undefined) {
-              //   const distance = Math.sqrt(
-              //     Math.pow(position.x - cameraPos.x, 2) +
-              //     Math.pow(position.z - cameraPos.z, 2)
-              //   )
-
-              //   if (distance < 3) {
-              //     this.setText(obj.text)
-              //   }
-              // }
-              this.showText(obj.text)
+              if (distance < 3) {
+                this.showText(obj.text)
+              }
             }
           }
         } else if (this.state.mode === Mode.EDIT) {
