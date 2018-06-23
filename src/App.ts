@@ -179,7 +179,7 @@ class App {
 
     const rig = document.createElement('a-entity')
     rig.id = 'rig'
-    rig.setAttribute('movement-controls', "")
+    rig.setAttribute('movement-controls', `fly: ${this.state.mode === Mode.EDIT}`)
     rig.setAttribute('position', '0 0 0')
     this.rig = rig
     el.appendChild(rig)
@@ -376,6 +376,8 @@ class App {
     }
 
     this.state.mode = mode
+
+    this.rig.setAttribute('movement-controls', `fly: ${mode === Mode.EDIT}`)
   }
 
   private isCloseEnoughToInteract(el: AFrameElement, threshold: number = 3) {
