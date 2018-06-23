@@ -62,12 +62,39 @@ class App {
     // }, interval)
     
     this.createScene()
+
     this.el = document.querySelector('a-scene');
+    this.elMap = {};
+
     Object.keys(this.state.objects).forEach(key => {
       const element = this.state.objects[key]
-      const el = this.billboardToEntity(element)
+      const el = this.entityForObject(element)
+      this.elMap[key] = el
       this.el.appendChild(el)
     });
+
+    this.el.addEventListener('click', (e) => {
+      if (!e.isTrusted) { return }
+
+      // If we clicked on an actual object, we don't want to fire this object.
+      // However, these 'real' events fire before the synthetic object click events,
+      // so we need to wait to make sure we didn't receive one of those
+      // (and because they're synthetic, we can't just stop propagation)
+      setTimeout(() => {
+        const now = new Date()
+        console.log(now - this.objectLastClicked)
+        if (now - this.objectLastClicked < 200) { return }
+        if (this.state.mode === Mode.PLAY) {
+          if (this.state.text) {
+            this.hideText()
+          }
+        } else if (this.state.mode === Mode.EDIT) {
+          if (this.state.holding) {
+            this.placeBillboard()
+          }
+        }
+      }, 0)
+    })
   }
 
   createScene() {
@@ -97,6 +124,7 @@ class App {
     el.appendChild(rig)
 
     const camera = document.createElement('a-camera')
+    camera.id = 'camera'
     // camera.setAttribute('look-controls', 'pointer-lock-enabled: true')
     camera.setAttribute('position', '0 1.6 0')
     rig.appendChild(camera)
@@ -130,64 +158,6 @@ class App {
     this.el = el
   }
 
-  clickedAnywhere = (e) => {
-    const scene = document.getElementById("scene")
-    if (e.target === scene) {
-      return
-    }
-
-    if (!(scene.components && scene.components.raycaster)) {
-      return
-    }
-
-    if (e.isTrusted) {
-      // TODO: Proper 'click'. Could be sky. Handle dialog. Think through the ramifications for edit.
-    }
-
-    if (this.state.mode === Mode.PLAY) {
-      this.handlePlayClick(e, scene)
-    } else if (this.state.mode === Mode.EDIT) {
-      this.handleEditClick(e, scene)
-    }
-  }
-
-  handleEditClick(e, scene) {
-    if (e.isTrusted) return
-
-    if (this.state.holding) {
-      this.dropBillboard()
-    } else {
-      let intersectedEls = scene.components.raycaster.intersectedEls || []
-      if (intersectedEls.length === 0) {
-        return
-      } else if (intersectedEls.length > 1 ) {
-        console.log("OOPS OOPS OOPS HAD MORE THAN ONE INTERSECTED EL", intersectedEls)
-      }
-
-      const el = intersectedEls[0]
-      if (el.tagName !== 'A-IMAGE') {
-        return
-      }
-
-      const object = this.state.objects[el.id]
-      this.pickUp(object)
-    }
-  }
-
-  handlePlayClick(e, scene) {
-    var oldTextObj = this.state.textObj
-
-    if (this.state.text !== undefined) {
-      this.hideText()
-    }
-
-    let intersectedEls = scene.components.raycaster.intersectedEls || []
-    for (var i = 0; i < intersectedEls.length; i++) {
-      let el = intersectedEls[i];
-      this.tryToShowDialog(el, oldTextObj)
-    }
-  }
-
   tryToShowDialog(el, oldTextObj) {
     if (el === oldTextObj) return
 
@@ -209,84 +179,102 @@ class App {
     }
   }
 
-  // TODO: I don't know what this means.
-  toBillboard(obj) {
-    const newObj = {
-      geometry: {
-        width: obj.width,
-        height: obj.height
-      },
-      material: {
-        transparent: true,
-        alphaTest: 0.5
-      },
-      ...obj
-    }
-
-    // TODO: lol?
-    if (obj.image) {
-      newObj.material.src = obj.image
-    } else if (obj.animation) {
-      // TODO: This should really be a separate Aframe plugin that uses the Three.js lifecycle
-      newObj.material.src = obj.animation.images[obj.animation.currentFrame]
-    }
-
-    return newObj
-  }
-
-  billboardToEntity(o) {
+  entityForObject(o, isHolding) {
     var el = document.createElement('a-image');
     Object.keys(o).forEach((key) => {
       el.setAttribute(key, o[key])
     })
 
-    if (o.image) {
-      el.setAttribute('material', {src: o.image })
-    } else if (o.animation) {
-      // TODO: This should really be a separate Aframe plugin that uses the Three.js lifecycle
-      el.setAttribute('material', {src: o.animation.images[o.animation.currentFrame] })
+    el.objectId = o.id
+
+    let material = {
+      transparent: true,
+      alphaTest: 0.5
     }
 
-    el.setAttribute('image')
+    material.src = this.imageForObject(o)
+
+    el.setAttribute('material', material)
+
+    if (isHolding) {
+      el.setAttribute('rotation', undefined)
+      el.setAttribute('material', 'opacity', 0.5)  
+      el.setAttribute('position', {x: 0, y: 0, z: -1.0})
+    } else {
+      el.addEventListener('click', (e) => { 
+        this.objectLastClicked = new Date()
+  
+        const id = e.target.objectId
+        const obj = this.state.objects[id]
+  
+        if (this.state.mode === Mode.PLAY) {
+          if (obj.text) {
+            if (obj.text === this.state.text) {
+              this.hideText()
+            } else {
+              this.showText(obj.text)
+            }
+          }
+        } else if (this.state.mode === Mode.EDIT) {
+          if (!this.state.holding) {
+            this.pickUp(obj)
+          }
+        }
+        console.log("Object clicked", e) 
+      })
+    }
 
     return el
   }
 
-  setText(text) {
-
+  showText(text) {
+    this.state.text = text
   }
 
   hideText() {
-
+    const text = this.el.querySelector("#text")
+    text.parentNode.removeChild(text)
+    this.state.text = undefined
   }
 
-  addBillboard(billboard) {
+  pickUp(obj) {
+    console.log("Attempting to pick up")
+    const el = this.elMap[obj.id]
 
+    el.parentNode.removeChild(el)
+    delete this.elMap[obj.id]
+
+    const holdingEl = this.entityForObject(obj, true)
+    this.el.querySelector("#camera").appendChild(holdingEl)
+
+    this.state.holding = obj.id
+    this.state.holdingEl = holdingEl
   }
 
-  removeBillboard(billboard) {
+  placeBillboard() {
+    console.log("Attempting to place billboard")
+    const holdingEl = this.state.holdingEl
 
+    const obj = this.state.objects[this.state.holding]
+    obj.position = holdingEl.object3D.getWorldPosition(),
+    obj.rotation = holdingEl.parentNode.getAttribute('rotation')
+
+    holdingEl.parentNode.removeChild(holdingEl)
+
+    this.state.holding = undefined
+    this.state.holdingEl = undefined
+
+    const newEl = this.entityForObject(obj)
+    this.elMap[obj.id] = newEl
+    this.el.appendChild(newEl)
   }
 
-  pickUp(billboard) {
-    const holding = {...billboard}
-    delete holding.rotation
-
-    const objects = {...this.state.objects}
-    delete objects[billboard.id]
-  }
-
-  dropBillboard() {
-    const holdingObject3D = document.querySelector("#holding").object3D
-
-    const holding = this.state.holding
-    const objects = {...this.state.objects,
-      [holding.id]: {...holding,
-        position: holdingObject3D.getWorldPosition(),
-        rotation: document.querySelector("#camera").getAttribute('rotation') // TODO: get from Object3D?
-      }
+  imageForObject(obj) {
+    if (obj.image) {
+      return obj.image
+    } else {
+      return obj.animation.images[obj.animation.currentFrame]
     }
-    // TODO: Actually set
   }
 
   /*
