@@ -121,15 +121,17 @@ class App {
     rig.id = 'rig'
     rig.setAttribute('movement-control')
     rig.setAttribute('position', '0 0 0')
+    this.rig = rig
     el.appendChild(rig)
 
     const camera = document.createElement('a-camera')
     camera.id = 'camera'
-    // camera.setAttribute('look-controls', 'pointer-lock-enabled: true')
+    camera.setAttribute('look-controls', 'pointer-lock-enabled: true')
     camera.setAttribute('position', '0 1.6 0')
     rig.appendChild(camera)
+    this.camera = camera
 
-    // TODO: Append cursor/text to camera
+    // TODO: Append cursor to camera
 
     const leftHand = document.createElement('a-entity')
     leftHand.setAttribute('hand-controls', 'left')
@@ -154,6 +156,14 @@ class App {
     sky.setAttribute('color', '#6EBAA7')
     el.appendChild(sky)
 
+    const cursor = document.createElement('a-entity')
+    cursor.id = 'cursor'
+    cursor.setAttribute('position', '0 0 -1')
+    cursor.setAttribute('geometry', 'primitive: ring; radiusInner: 0.005; radiusOuter: 0.01')
+    cursor.setAttribute('material', 'color: black; shader: flat')
+    camera.appendChild(cursor)
+    this.cursor = cursor
+
     document.getElementById('root').appendChild(el)
     this.el = el
   }
@@ -165,7 +175,7 @@ class App {
     if (!(obj && obj.text)) return
 
     const position = el.getAttribute('position')
-    const cameraPos = document.querySelector("#rig").getAttribute('position')
+    const cameraPos = this.rig.getAttribute('position')
 
     if (cameraPos.x !== undefined) {
       const distance = Math.sqrt(
@@ -238,21 +248,21 @@ class App {
   }
 
   pickUp(obj) {
-    console.log("Attempting to pick up")
     const el = this.elMap[obj.id]
 
     el.parentNode.removeChild(el)
     delete this.elMap[obj.id]
 
     const holdingEl = this.entityForObject(obj, true)
-    this.el.querySelector("#camera").appendChild(holdingEl)
+    this.camera.appendChild(holdingEl)
 
     this.state.holding = obj.id
     this.state.holdingEl = holdingEl
+
+    this.cursor.setAttribute('visible', false)
   }
 
   placeBillboard() {
-    console.log("Attempting to place billboard")
     const holdingEl = this.state.holdingEl
 
     const obj = this.state.objects[this.state.holding]
@@ -267,6 +277,8 @@ class App {
     const newEl = this.entityForObject(obj)
     this.elMap[obj.id] = newEl
     this.el.appendChild(newEl)
+
+    this.cursor.setAttribute('visible', true)
   }
 
   imageForObject(obj) {
