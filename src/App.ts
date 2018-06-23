@@ -1,5 +1,5 @@
 import 'aframe';
-import { Vector3 } from 'three';
+import { Object3D, Vector3 } from 'three';
 
 // See how the default event system works in terms of clicking on things, and if I can get the behavior I want of "click on anything = remove text"
 require('aframe-extras');
@@ -8,6 +8,7 @@ require('aframe-look-at-component')
 // TODO: Make an A-Frame DefinitelyTyped PR!
 interface AFrameElement extends HTMLElement {
   setAttribute: ((first: string, second?: string, third?: any) => void);
+  object3D: Object3D
 }
 
 enum Mode {
@@ -154,6 +155,14 @@ class App {
       } else if (this.state.mode === Mode.PLAY) {
         this.changeMode(Mode.EDIT)
       }        
+    } else if (key === 'x') { // Move down
+      const position: Vector3 = (this.rig.getAttribute('position') as any) as Vector3
+      this.rig.object3D.position.y = position.y - 0.1
+    } else if (key === 'z') { // Move up
+      const position: Vector3 = (this.rig.getAttribute('position') as any) as Vector3
+      this.rig.object3D.position.y = position.y + 0.1   
+    } else if (key === 'c') { // Reset to original y-position
+      this.rig.object3D.position.y = 0         
     }
   }
 
