@@ -7,6 +7,9 @@
     ]
   },
   "rules": {
-    "no-console": [true, "warning"]
+    "interface-name": [true, "never-prefix"],
+    "member-access": [true, "no-public"],
+    "no-console": [true, "warning"],
+    "no-var-requires": false
   }
 }

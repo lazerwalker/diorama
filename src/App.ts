@@ -4,27 +4,48 @@ import 'aframe';
 require('aframe-extras');
 require('aframe-look-at-component')
 
-const Mode = {
-  EDIT: "edit",
-  PLAY: "play"
+enum Mode {
+  EDIT = "edit",
+  PLAY = "play"
+}
+
+interface Billboard {
+  animation?: {
+    images: string[]
+    framerate: number
+    currentFrame: number
+  }
+  id: string,
+  height: number,
+  image?: string
+  position: {x: number, y: number, z: number}
+  rotation?: string
+  text?: string
+  width: number
+}
+
+interface State {
+  mode: Mode,
+  objects: {[key: string]: Billboard}
+  text?: string
+  holding?: string
 }
 
 class App {
-  state = {
+  state: State = {
     mode: Mode.PLAY,
     objects: {
       "wol": {
         animation: {
           currentFrame: 1,
           framerate: 300,
-          images: ["#wol", "#wol2"]
+          images: ["#wol", "#wol2"],
         },
         height: 1.6,
         id: 'wol',
         position: {x: 0.0, y: 1.6, z: -5.0},
         text: "Howdy pardner!",
         width: 1.4
-
       },
       "wol2": {
         height: 1.6,
@@ -32,11 +53,24 @@ class App {
         image: "#wol2",
         position: {x: 3.0, y: 1.6, z: -8.0},
         text: "Woah, I was placed!",
-        width: 1.4
+        width: 1.4,
       }
     }
   }
-    constructor() {
+  rig: Element // TODO: Just public to stop the linter from yelling we're not using it
+
+  private el: Element
+  private camera: Element
+  private cursor: Element
+
+  private textEl?: Element
+  private holdingEl?: Element
+
+  private elMap: {[id: string]: Element}
+
+  private objectLastClicked?: Date
+  
+  constructor() {
     //  const interval = Math.min(...Object.values(this.state.objects)
     //     .map((o) => o.animation ? o.animation.framerate : Infinity))
     // setInterval(() => {
@@ -64,7 +98,12 @@ class App {
     
     this.createScene()
 
-    this.el = document.querySelector('a-scene');
+    this.el = document.querySelector('a-scene')!
+    if (!this.el) {
+      console.log("COULD NOT FIND SCENE")
+      return
+    }
+
     this.elMap = {};
 
     Object.keys(this.state.objects).forEach(key => {
@@ -82,8 +121,9 @@ class App {
       // so we need to wait to make sure we didn't receive one of those
       // (and because they're synthetic, we can't just stop propagation)
       setTimeout(() => {
-        const now = new Date()
-        if (now - this.objectLastClicked < 200) { return }
+        const now = new Date().getTime()
+        
+        if (this.objectLastClicked && now - this.objectLastClicked.getTime() < 200) { return }
         if (this.state.mode === Mode.PLAY) {
           if (this.state.text) {
             this.hideText()
@@ -108,8 +148,8 @@ class App {
     }
 
     const assets = document.createElement('a-assets')
-    Object.keys(assetList).forEach((key) => {
-      const img = document.createElement('img')
+    Object.keys(assetList).forEach((key: string) => {
+      const img: any = document.createElement('img')
       img.id = key
       img.src = assetList[key]
 
@@ -119,10 +159,11 @@ class App {
 
     const rig = document.createElement('a-entity')
     rig.id = 'rig'
-    rig.setAttribute('movement-control')
+    rig.setAttribute('movement-control', undefined)
     rig.setAttribute('position', '0 0 0')
     this.rig = rig
     el.appendChild(rig)
+    console.log(rig)
 
     const camera = document.createElement('a-camera')
     camera.id = 'camera'
@@ -162,40 +203,19 @@ class App {
     camera.appendChild(cursor)
     this.cursor = cursor
 
-    document.getElementById('root').appendChild(el)
+    document.body.appendChild(el)
     this.el = el
   }
 
-  tryToShowDialog(el, oldTextObj) {
-    if (el === oldTextObj) { return }
-
-    let obj = this.state.objects[el.id]
-    if (!(obj && obj.text)) { return }
-
-    const position = el.getAttribute('position')
-    const cameraPos = this.rig.getAttribute('position')
-
-    if (cameraPos.x !== undefined) {
-      const distance = Math.sqrt(
-        Math.pow(position.x - cameraPos.x, 2) +
-        Math.pow(position.z - cameraPos.z, 2)
-      )
-
-      if (distance < 3) {
-        this.setText(obj.text)
-      }
-    }
-  }
-
-  entityForObject(o, isHolding) {
-    var el = document.createElement('a-image');
+  entityForObject(o: Billboard, isHolding: boolean = false) {
+    const el = document.createElement('a-image');
     Object.keys(o).forEach((key) => {
       el.setAttribute(key, o[key])
     })
 
-    el.objectId = o.id
+    el.setAttribute('objectId', o.id)
 
-    let material = {
+    const material: any = {
       alphaTest: 0.5,
       transparent: true
     }
@@ -212,7 +232,7 @@ class App {
       el.addEventListener('click', (e) => { 
         this.objectLastClicked = new Date()
   
-        const id = e.target.objectId
+        const id: string = (e.target as Element).getAttribute('objectId')!
         const obj = this.state.objects[id]
   
         if (this.state.mode === Mode.PLAY) {
@@ -220,6 +240,20 @@ class App {
             if (obj.text === this.state.text) {
               this.hideText()
             } else {
+
+              // const position = el.getAttribute('position')
+              // const cameraPos = this.rig.getAttribute('position')
+
+              // if (cameraPos.x !== undefined) {
+              //   const distance = Math.sqrt(
+              //     Math.pow(position.x - cameraPos.x, 2) +
+              //     Math.pow(position.z - cameraPos.z, 2)
+              //   )
+
+              //   if (distance < 3) {
+              //     this.setText(obj.text)
+              //   }
+              // }
               this.showText(obj.text)
             }
           }
@@ -234,7 +268,7 @@ class App {
     return el
   }
 
-  showText(text) {
+  showText(text: string) {
     if (this.state.text) {
       this.hideText()
     }
@@ -250,50 +284,59 @@ class App {
   }
 
   hideText() {
+    if (!(this.textEl && this.textEl.parentNode)) { return }
+
     this.textEl.parentNode.removeChild(this.textEl)
     delete this.textEl
     delete this.state.text
   }
 
-  pickUp(obj) {
+  pickUp(obj: Billboard) {
     const el = this.elMap[obj.id]
 
-    el.parentNode.removeChild(el)
+    if (el.parentNode) {
+      el.parentNode.removeChild(el)
+    }
+
     delete this.elMap[obj.id]
 
     const holdingEl = this.entityForObject(obj, true)
     this.camera.appendChild(holdingEl)
 
     this.state.holding = obj.id
-    this.state.holdingEl = holdingEl
+    this.holdingEl = holdingEl
 
-    this.cursor.setAttribute('visible', false)
+    this.cursor.setAttribute('visible', 'false')
   }
 
   placeBillboard() {
-    const holdingEl = this.state.holdingEl
+    if (!(this.holdingEl && this.state.holding)) { return }
 
     const obj = this.state.objects[this.state.holding]
-    obj.position = holdingEl.object3D.getWorldPosition()
-    obj.rotation = holdingEl.parentNode.getAttribute('rotation')
+    obj.position = (this.holdingEl as any).object3D.getWorldPosition()
 
-    holdingEl.parentNode.removeChild(holdingEl)
+    if (this.holdingEl.parentNode) {
+      obj.rotation = (this.holdingEl.parentNode as HTMLElement).getAttribute('rotation') || undefined
+      this.holdingEl.parentNode.removeChild(this.holdingEl)
+    }
 
     this.state.holding = undefined
-    this.state.holdingEl = undefined
+    delete this.holdingEl
 
     const newEl = this.entityForObject(obj)
     this.elMap[obj.id] = newEl
     this.el.appendChild(newEl)
 
-    this.cursor.setAttribute('visible', true)
+    this.cursor.setAttribute('visible', 'true')
   }
 
-  imageForObject(obj) {
+  imageForObject(obj: Billboard): string|undefined {
     if (obj.image) {
       return obj.image
-    } else {
+    } else if (obj.animation) {
       return obj.animation.images[obj.animation.currentFrame]
+    } else {
+      return undefined
     }
   }
 }
