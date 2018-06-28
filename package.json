@@ -2,6 +2,7 @@
   "name": "diorama",
   "version": "0.0.1",
   "private": true,
+  "homepage": "http://lazerwalker.com/diorama",
   "dependencies": {
     "Aframe-Material": "https://github.com/etiennepinchon/aframe-material",
     "aframe": "^0.8.2",
@@ -13,12 +14,14 @@
     "start": "react-scripts-ts start",
     "build": "react-scripts-ts build",
     "test": "react-scripts-ts test --env=jsdom",
-    "eject": "react-scripts-ts eject"
+    "eject": "react-scripts-ts eject",
+    "deploy" : "yarn build && gh-pages -d build"
   },
   "devDependencies": {
     "@types/aframe": "^0.7.2",
     "@types/jest": "^23.1.1",
     "@types/node": "^10.3.5",
+    "gh-pages": "^1.2.0",
     "typescript": "^2.9.2"
   }
 }
