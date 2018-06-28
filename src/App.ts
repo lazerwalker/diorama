@@ -38,6 +38,21 @@ interface State {
   holding?: string
 }
 
+function createEntity(attributes: {[attribute: string]: any}, element?: string): AFrameElement {
+  const elName = element || "a-entity"
+  const el = document.createElement(elName)
+
+  Object.keys(attributes).forEach((key) => {
+    if (['id'].indexOf(key) !== -1) {
+      el[key] = attributes[key]
+    } else {
+      el.setAttribute(key, attributes[key])
+    }
+  })
+
+  return el
+}
+
 class App {
   state: State = {
     mode: Mode.PLAY,
@@ -186,50 +201,50 @@ class App {
     })
     el.appendChild(assets)
 
-    const rig = document.createElement('a-entity')
-    rig.id = 'rig'
-    rig.setAttribute('movement-controls', `fly: ${this.state.mode === Mode.EDIT}`)
-    rig.setAttribute('position', '0 0 0')
-    this.rig = rig
-    el.appendChild(rig)
+    this.rig = createEntity({
+      'id': 'rig',
+      'movement-controls': `fly: ${this.state.mode === Mode.EDIT}`,
+      'position': '0 0 0'
+    })
+    el.appendChild(this.rig)
 
-    const camera = document.createElement('a-camera')
-    camera.id = 'camera'
-    camera.setAttribute('look-controls', 'pointer-lock-enabled: true')
-    camera.setAttribute('position', '0 1.6 0')
-    rig.appendChild(camera)
-    this.camera = camera
+    this.camera = createEntity({
+      'id': 'camera',
+      'look-controls': 'pointer-lock-enabled: true',
+      'position': '0 1.6 0'
+    }, 'a-camera')
+    this.rig.appendChild(this.camera)
 
-    const leftHand = document.createElement('a-entity')
-    leftHand.setAttribute('hand-controls', 'left')
-    el.appendChild(leftHand)
+    el.appendChild(createEntity({
+      'hand-controls': 'left'
+    }))
 
-    const rightHand = document.createElement('a-entity')
-    leftHand.setAttribute('hand-controls', 'right')
-    el.appendChild(rightHand)
+    el.appendChild(createEntity({
+      'hand-controls': 'right'
+    }))
 
-    const laser = document.createElement('a-entity')
-    laser.setAttribute('laser-controls', 'hand: left')
-    el.appendChild(laser)
+    el.appendChild(createEntity({
+      'laser-controls': 'hand: left'
+    }))
 
-    const plane = document.createElement('a-plane')
-    plane.setAttribute('height', 100)
-    plane.setAttribute('width', 100)
-    plane.setAttribute('rotation', '-90 0 0 ')
-    plane.setAttribute('color', '#333333')
-    el.appendChild(plane)
+    el.appendChild(createEntity({
+      'color': '#333333',
+      'height': 100,
+      'rotation': '-90 0 0',
+      'width': 100
+    }, 'a-plane'))
 
-    const sky = document.createElement('a-sky')
-    sky.setAttribute('color', '#6EBAA7')
-    el.appendChild(sky)
+    el.appendChild(createEntity({
+      'color': '#6EBAA7'
+    }, 'a-sky'))
 
-    const cursor = document.createElement('a-entity')
-    cursor.id = 'cursor'
-    cursor.setAttribute('position', '0 0 -1')
-    cursor.setAttribute('geometry', 'primitive: ring; radiusInner: 0.005; radiusOuter: 0.01')
-    cursor.setAttribute('material', 'color: black; shader: flat')
-    camera.appendChild(cursor)
-    this.cursor = cursor
+    this.cursor = createEntity({
+      'geometry': 'primitive: ring; radiusInner: 0.005; radiusOuter: 0.01',
+      'id': 'cursor',
+      'material': 'color: black; shader: flat;',
+      'position': '0 0 -1'
+    })
+    this.camera.appendChild(this.cursor)
 
     document.body.appendChild(el)
     this.el = el
