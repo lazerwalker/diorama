@@ -49,6 +49,12 @@
   version "0.0.34"
   resolved "https://registry.yarnpkg.com/@types/webvr-api/-/webvr-api-0.0.34.tgz#8fa49028de925c7b8bce3d559d3374ce2c89ee28"
 
+"Aframe-Material@https://github.com/etiennepinchon/aframe-material":
+  version "0.1.1"
+  resolved "https://github.com/etiennepinchon/aframe-material#94088c2cf7bfc8115345edfc0c749495af6334f4"
+  dependencies:
+    aframe-rounded "^1.0.3"
+
 abab@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/abab/-/abab-1.0.4.tgz#5faad9c2c07f60dd76770f71cf025b62a63cfd4e"
@@ -97,6 +103,10 @@ aframe-extras@^4.1.2:
 aframe-look-at-component@^0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/aframe-look-at-component/-/aframe-look-at-component-0.6.0.tgz#9a45e4c66110cbf4c03a110fccc1bbd992081d5f"
+
+aframe-rounded@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/aframe-rounded/-/aframe-rounded-1.0.3.tgz#72c7d9c0ff02e94ee138bf217c284e187efa3cfb"
 
 aframe@^0.8.2:
   version "0.8.2"
