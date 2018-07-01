@@ -279,6 +279,19 @@ class App {
       }
 
 
+      el.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+
+        if (!this.state.holding) {
+          const id: string = (e.target as Element).getAttribute('objectId')!
+          const obj = this.state.objects[id]
+
+          this.pickUp(obj)
+        }
+
+        return false;
+      }, false);
+
       el.addEventListener('click', (e) => { 
         this.objectLastClicked = new Date()
   
@@ -296,8 +309,11 @@ class App {
             }
           }
         } else if (this.state.mode === Mode.EDIT) {
-          if (!this.state.holding) {
-            this.pickUp(obj)
+          const newText = prompt("Enter some dialog")
+          if (newText) {
+            obj.text = newText
+            // TODO: Need to set on state, or does pass-by-reference save us?
+            // If the latter, this points towards a redux-like unidirectional data flow
           }
         }
       })
